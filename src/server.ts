@@ -1,4 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import http from 'http';
+import { sequelize } from './config';
 
 const server = http.createServer(
   (
@@ -18,4 +22,8 @@ const server = http.createServer(
 );
 
 const port = process.env.PORT || 3000;
-server.listen(port);
+
+server.listen(port, async () => {
+  /* database configuration */
+  await sequelize.authenticate();
+});
