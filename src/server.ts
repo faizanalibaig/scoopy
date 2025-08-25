@@ -1,29 +1,28 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
-import http from 'http';
-import { sequelize } from './config';
+const app = express();
+const httpServer = createServer(app); //http server
+const io = new Server(httpServer); //socket server
 
-const server = http.createServer(
-  (
-    req: http.IncomingMessage,
-    res: http.ServerResponse<http.IncomingMessage>
-  ) => {
-    /* log page not found if the route is not main */
-    if (req.url !== '/') {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      return res.end('page not found, sorry');
-    }
+/* socket.io connection */
+io.on('connection', (socket) => {
+  console.log(`User connected: ${socket.id}`);
 
-    /* main route */
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('hello from scoopy');
-  }
-);
+  /* event */
+  socket.on('chat message', (data) => {
+    console.log(`Message from ${socket.id}: ${data}`);
+    socket.emit('reply', `Server received: ${data}`);
+  });
 
-const port = process.env.PORT || 3000;
+  /* disconnection */
+  socket.on('disconnect', () => {
+    console.log(`User disconnected: ${socket.id}`);
+  });
+});
 
-server.listen(port, async () => {
-  /* database configuration */
-  await sequelize.authenticate();
+/* server listen */
+httpServer.listen(3000, () => {
+  console.log('Server running on http://localhost:3000');
 });

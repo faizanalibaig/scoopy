@@ -28,5 +28,8 @@
     "sequelize": "^6.37.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
+  },
+  "devDependencies": {
+    "socket.io": "^4.8.1"
   }
 }
