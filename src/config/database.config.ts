@@ -1,28 +1,36 @@
-import { Sequelize } from 'sequelize';
+import mongoose from 'mongoose';
 
-interface CONFIG {
-  database: string;
-  username: string;
-  password: string;
-  host: string;
-}
+export default class DatabaseConfig {
+  private uri: string;
 
-const config: CONFIG = {
-  database: process.env.DB_NAME || '',
-  username: process.env.DB_USERNAME || '',
-  password: process.env.DB_PASSWORD || '',
-  host: process.env.DB_HOST || '',
-};
+  constructor() {
+    this.uri = process.env.MONGO_URI || '';
 
-const sequelize = new Sequelize(
-  config.database,
-  config.username,
-  config.password,
-  {
-    host: config.host,
-    dialect: 'postgres',
-    logging: false,
+    if (!this.uri) {
+      throw new Error('MONGO_URI environment variable is required');
+    }
   }
-);
 
-export default sequelize;
+  async connect(): Promise<typeof mongoose> {
+    try {
+      const connection = await mongoose.connect(this.uri);
+      console.log('Connected to MongoDB successfully');
+      return connection;
+    } catch (error) {
+      console.error('Error while connecting to MongoDB:', error);
+      throw new Error(`Database connection failed: ${error}`);
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    try {
+      await mongoose.disconnect();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  isConnected(): boolean {
+    return mongoose.connection.readyState === 1;
+  }
+}

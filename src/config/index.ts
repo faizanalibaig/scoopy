@@ -1,1 +1,1 @@
-export { default as sequelize } from './database.config';
+export { default as DatabaseConfig } from './database.config';

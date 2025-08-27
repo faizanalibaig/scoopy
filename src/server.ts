@@ -1,28 +1,49 @@
+import * as dotenv from 'dotenv';
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 
+import { DatabaseConfig } from './config';
+
 const app = express();
-const httpServer = createServer(app); //http server
-const io = new Server(httpServer); //socket server
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+dotenv.config();
+
+/* database connection */
+new DatabaseConfig().connect();
+
+/* http server connection */
+const httpServer = createServer(app);
 
 /* socket.io connection */
-io.on('connection', (socket) => {
-  console.log(`User connected: ${socket.id}`);
+const io = new Server(httpServer, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
+});
 
-  /* event */
-  socket.on('chat message', (data) => {
-    console.log(`Message from ${socket.id}: ${data}`);
-    socket.emit('reply', `Server received: ${data}`);
+/* health check endpoint */
+app.get('/health-check', (req, res) => {
+  res.send('Socket.IO server is running');
+});
+
+/* web-sockets implementation */
+io.on('connection', (socket) => {
+  socket.on('message', (s) => {
+    console.log(s);
+
+    socket.emit('reply', `Message received: ${s}`);
   });
 
-  /* disconnection */
   socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.id}`);
+    console.log('Client disconnected:', socket.id);
   });
 });
 
-/* server listen */
-httpServer.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
+/* app running */
+const port = process.env.PORT || 9000;
+httpServer.listen(port, () => {
+  console.log(`Server listening on http://localhost:${port}`);
 });
