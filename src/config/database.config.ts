@@ -14,7 +14,7 @@ export default class DatabaseConfig {
   async connect(): Promise<typeof mongoose> {
     try {
       const connection = await mongoose.connect(this.uri);
-      console.log('Connected to MongoDB successfully');
+      console.log('Successfully connected to MongoDB successfully');
       return connection;
     } catch (error) {
       console.error('Error while connecting to MongoDB:', error);
